@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://b6ntcxjdo233y"]
+
+[ext_resource type="Script" uid="uid://b0neraogkbars" path="res://Maps/deadzone.gd" id="1_x32m2"]
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_x32m2"]
+
+[node name="Deadzone" type="Node3D"]
+
+[node name="Area3D" type="Area3D" parent="."]
+script = ExtResource("1_x32m2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(6.295, 0, 0, 0, 6.295, 0, 0, 0, 6.295, 0, 0, 0)
+shape = SubResource("WorldBoundaryShape3D_x32m2")

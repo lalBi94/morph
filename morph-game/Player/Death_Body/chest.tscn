@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://b52m03lj2pwcv"]
+
+[ext_resource type="ArrayMesh" uid="uid://cploufjs5nkm3" path="res://Player/Death_Body/chest.res" id="1_ncp6m"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_417si"]
+size = Vector3(1.9638672, 1.9406738, 1.8261719)
+
+[node name="Chest" type="Node3D"]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95427275, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.021972656, 0.009643555, -0.036132813)
+shape = SubResource("BoxShape3D_417si")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95427275, 0)
+mesh = ExtResource("1_ncp6m")

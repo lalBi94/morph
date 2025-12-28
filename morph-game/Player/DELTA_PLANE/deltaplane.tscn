@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://bpj5lmcvxkxpk"]
+
+[ext_resource type="ArrayMesh" uid="uid://b88kebwbicae0" path="res://Player/DELTA_PLANE/deltaplane.res" id="1_3q1uv"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(3.02, 0, 0, 0, 3.02, 0, 0, 0, 3.02, 0, 0, 0)
+mesh = ExtResource("1_3q1uv")

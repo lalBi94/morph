@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://dktg5lrht2e24"]
+
+[ext_resource type="Script" uid="uid://cwpmjrh67jgoy" path="res://Player/Head_HUD/hud.gd" id="1_a35iw"]
+[ext_resource type="Resource" uid="uid://decik3akmyokq" path="res://Player/Statistics.tres" id="2_ofj6y"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Label3D" type="Label3D" parent="."]
+billboard = 1
+text = "Life - ???
+Mana - ???
+Money - ???
+Level - ???"
+font_size = 90
+script = ExtResource("1_a35iw")
+stats = ExtResource("2_ofj6y")
