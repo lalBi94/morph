@@ -1,0 +1,58 @@
+[gd_scene load_steps=8 format=3 uid="uid://dqr0pv1ietq1d"]
+
+[ext_resource type="PackedScene" uid="uid://b6ntcxjdo233y" path="res://Maps/deadzone/deadzone.tscn" id="1_ftgn0"]
+[ext_resource type="Shader" uid="uid://bsci3lgddj8c0" path="res://Maps/dynwater/water.gdshader" id="3_ftgn0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ftgn0"]
+render_priority = 0
+shader = ExtResource("3_ftgn0")
+shader_parameter/WATER_COL = Vector4(0.04, 0.38, 0.88, 1)
+shader_parameter/WATER2_COL = Vector4(0.04, 0.35, 0.78, 1)
+shader_parameter/FOAM_COL = Vector4(0.8125, 0.9609, 0.9648, 1)
+shader_parameter/distortion_speed = 2.0
+shader_parameter/tile = Vector2(5, 5)
+shader_parameter/height = 2.0
+shader_parameter/wave_size = Vector2(2, 2)
+shader_parameter/wave_speed = 1.5
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ved8g"]
+material = SubResource("ShaderMaterial_ftgn0")
+size = Vector2(91.985, 80.695)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4v3wq"]
+albedo_color = Color(0.07450981, 0.42745098, 0.08235294, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4v3wq"]
+material = SubResource("StandardMaterial3D_4v3wq")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4v3wq"]
+
+[node name="MAP" type="Node3D"]
+
+[node name="Deadzone" parent="." instance=ExtResource("1_ftgn0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -13.758026, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.02792158, 0.9996101, 0, -0.9996101, 0.02792158, 0, 68.828415, 0)
+light_color = Color(0.7121294, 0.7121294, 0.71212935, 1)
+light_energy = 2.033
+light_indirect_energy = 1.087
+light_volumetric_fog_energy = 0.738
+
+[node name="water" type="MeshInstance3D" parent="."]
+transform = Transform3D(4.005, 0, 0, 0, 4.005, 0, 0, 0, 4.005, -11.249, -13.758, 0.876)
+mesh = SubResource("PlaneMesh_ved8g")
+
+[node name="GridMap" type="GridMap" parent="."]
+
+[node name="for_now" type="MeshInstance3D" parent="GridMap"]
+transform = Transform3D(53.53, 0, 0, 0, 2, 0, 0, 0, 64.61, 0, 0, 0)
+mesh = SubResource("BoxMesh_4v3wq")
+skeleton = NodePath("../..")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="GridMap/for_now"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GridMap/for_now/StaticBody3D"]
+shape = SubResource("BoxShape3D_4v3wq")
+
+[editable path="Deadzone"]

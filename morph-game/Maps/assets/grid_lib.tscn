@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://bohva8ip0j5w4"]
+
+[node name="grid_lib" type="Node3D"]
