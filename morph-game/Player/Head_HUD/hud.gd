@@ -1,6 +1,10 @@
 extends Label3D
 
-@export var stats: PlayerStats
+var stats: PlayerStats
+
+func set_stats(pstats: PlayerStats):
+	print(":ft: ", pstats)
+	self.stats = pstats
 
 var hud_stat: Dictionary = {
 	"hp": "Life - ???",
@@ -11,7 +15,6 @@ var hud_stat: Dictionary = {
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	print(stats)
 	stats.update_hp.connect(_update_hp)
 	_update_hp(stats.hp, stats.max_hp)
 	
@@ -24,15 +27,11 @@ func _ready() -> void:
 	stats.update_level.connect(_update_level)
 	_update_level(stats.level)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
-func _update_hp(current_hp: int, current_max_hp: int) -> void:
+func _update_hp(current_hp: float, current_max_hp: float) -> void:
 	self.hud_stat["hp"] = "Life - %.2f/%.2f" % [current_hp, current_max_hp]
 	self.update_hud()
 	
-func _update_mana(current_mana: int, current_max_mana: int) -> void:
+func _update_mana(current_mana: float, current_max_mana: float) -> void:
 	self.hud_stat["mana"] = "Mana - %d/%d" % [current_mana, current_max_mana]
 	self.update_hud()
 	

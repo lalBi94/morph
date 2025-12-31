@@ -4,8 +4,8 @@ class_name PlayerStats
 @export var max_hp: float = 100.0
 @export var max_mana: int = 100
 @export var min_lvl: int = 1
-@export var move_speed: float = 6.0
-@export var jump_velocity: float = 4.5
+@export var move_speed: float = 10.0
+@export var jump_velocity: float = 6
 @export var start_money: float = 50.0
 
 @export var champion: ChampStats

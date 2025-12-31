@@ -1,15 +1,15 @@
 extends CharacterBody3D
 class_name Player
 
-@export var gridmap_path: NodePath
-@export var dead_zone_path: NodePath
-@export var stats: PlayerStats
+@export var gridmap: GridMap
+@export var dead_zone: Area3D
+@export var terrain: Terrain3D
+@export var is_not_me: bool
 
-@onready var gridmap: GridMap = get_node(gridmap_path)
-@onready var dead_zone: Area3D = get_node(dead_zone_path)
-
-var animation_tree: AnimationTree
-var body_mesh: MeshInstance3D
+@onready var animation_tree: AnimationTree = $AnimationTree
+@onready var body_mesh: MeshInstance3D = $Armature/Skeleton3D/Mesh
+@onready var camera_arm: SpringArm3D = $Camera
+@onready var camera_of_arm: Camera3D = $Camera/Camera3D
 
 enum under_feet {
 	nothing = -1,
@@ -17,8 +17,9 @@ enum under_feet {
 	lava = 5
 }
 
-const ZOOM: int = 20
 const ZOOM_SPEED_REDUCER: float = 0.4
+const ZOOM_PRIMARY_SCALE_FACTOR: float = 1.28233333333
+const ZOOM_ADD: float = 1.1*ZOOM_PRIMARY_SCALE_FACTOR
 var is_zooming = false
 
 var deltaplane_ref: Node3D = null
@@ -30,17 +31,22 @@ var last_position_in_floor = self.global_position
 var chest_ref: Node3D = null
 var is_dead: bool = false
 
+var stats: PlayerStats
+
 signal fall()
 
+func set_not_me(response: bool) -> void:
+	self.is_not_me = response
+
+func set_stats(pstats: PlayerStats) -> void:
+	self.stats = pstats
+
 func _input(event):
-	if not body_mesh:
-		return
-	
 	if event is InputEventMouseMotion:
 		var mouse_pos: Vector2 = event.position
 
-		var from: Vector3 = $Camera/Camera3D.project_ray_origin(mouse_pos)
-		var dir: Vector3 = $Camera/Camera3D.project_ray_normal(mouse_pos)
+		var from: Vector3 = camera_of_arm.project_ray_origin(mouse_pos)
+		var dir: Vector3 = camera_of_arm.project_ray_normal(mouse_pos)
 		var to: Vector3 = from + dir * 20000.0
 		
 		var query:= PhysicsRayQueryParameters3D.create(from, to)
@@ -79,13 +85,15 @@ func spawn_chest() -> Node3D:
 	add_child(inst)
 	inst.global_position = self.global_position
 	inst.rotation.y = body_mesh.rotation.y
+	inst.scale = inst.scale * 3
 	return inst
 
 func spawn_deltaplane() -> Node3D:
 	var inst: Node3D = stats.deltaplane_mesh.instantiate() as Node3D
 	add_child(inst)
-	inst.global_position = self.global_position + Vector3(0,5,0)
+	inst.global_position = self.global_position + Vector3(0,7,0)
 	inst.rotation.y = body_mesh.rotation.y
+	inst.scale = inst.scale * 50
 	return inst
 
 func cell_under_player(max_dist := 2.0) -> int:
@@ -102,11 +110,12 @@ func cell_under_player(max_dist := 2.0) -> int:
 	if hit.is_empty():
 		return under_feet.nothing
 		
+		
 	# Décalage vers l'intérieur (epsilon)
-	var p : Vector3 = hit.position - hit.normal * 0.02
+	var p : Vector3 = hit.position - hit.normal
 	var cell : Vector3i = gridmap.local_to_map(gridmap.to_local(p))
 	var item_id : int = gridmap.get_cell_item(cell)
-	
+
 	return item_id
 
 func _on_fall() -> void:
@@ -115,13 +124,8 @@ func _on_fall() -> void:
 
 func _ready() -> void:
 	self.fall.connect(_on_fall)
-	
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	stats.reset_runtime()
-	if stats.champion.charc.can_instantiate():
-		$ChampionSlot.add_child(stats.champion.charc.instantiate())
-		body_mesh = $ChampionSlot/Champion/Armature/Skeleton3D/Mesh
-		animation_tree = $ChampionSlot/Champion/AnimationTree
 
 func _process(_delta: float) -> void:
 	# Box Respawing last position
@@ -145,49 +149,49 @@ func _physics_process(delta: float) -> void:
 		is_sprinting = true
 	elif Input.is_action_just_released("morph_sprint"):
 		is_sprinting = false
+		
+	# Send is on floor to animator automata
+	animation_tree.set("is_on_floor", self.is_on_floor())
 	
 	# Send speed to animator automata
 	animation_tree.set("speed", self.velocity.length())
 	
 	# Add the gravity.
 	if not is_on_floor() and not is_gliding:
-		velocity.y -= 15 * delta
+		velocity.y -= 35 * delta
 	elif is_gliding:
 		velocity.y -= 5 * delta
 
 	# Mouvements
-	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	var direction := (transform.basis * Vector3(-input_dir.x, 0, -input_dir.y)).normalized()
+	if !is_not_me:
+		var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+		var direction := (transform.basis * Vector3(-input_dir.x, 0, -input_dir.y)).normalized()
 
-	var speed := stats.move_speed
-	if is_zooming:
-		speed *= ZOOM_SPEED_REDUCER
-	if is_sprinting:
-		speed *= 1.4
+		var speed := stats.move_speed
+		if is_zooming:
+			speed *= ZOOM_SPEED_REDUCER
+		if is_sprinting:
+			speed *= 2
 
-	if direction.length() > 0.0:
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
-	else:
-		var decel := stats.move_speed
-		velocity.x = move_toward(velocity.x, 0.0, decel)
-		velocity.z = move_toward(velocity.z, 0.0, decel)
+		if direction.length() > 0.0:
+			velocity.x = direction.x * speed
+			velocity.z = direction.z * speed
+		else:
+			var decel := stats.move_speed
+			velocity.x = move_toward(velocity.x, 0.0, decel)
+			velocity.z = move_toward(velocity.z, 0.0, decel)
 
 	# Unzoom
-	if Input.is_action_just_pressed("morph_zoom"):
-		$Camera.position.y += ZOOM
-		$Camera.position.z -= 3
-		$Camera.position.x -= 3
+	if !is_not_me && Input.is_action_just_pressed("morph_zoom"):
+		camera_arm.position *= ZOOM_ADD
 		is_zooming = true
-	if Input.is_action_just_released("morph_zoom"):
+	if !is_not_me && Input.is_action_just_released("morph_zoom"):
+		camera_arm.position /= ZOOM_ADD
 		is_zooming = false
-		$Camera.position.z += 3
-		$Camera.position.x += 3
-		$Camera.position.y -= ZOOM
 
 	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = stats.jump_velocity + 4
+	if !is_not_me && Input.is_action_just_pressed("ui_accept") and is_on_floor():
+		velocity.y = stats.jump_velocity + 9
 
 	if is_gliding and body_mesh:
 		deltaplane_ref.rotation.y = body_mesh.rotation.y
@@ -196,11 +200,11 @@ func _physics_process(delta: float) -> void:
 		velocity.y = move_toward(velocity.y, -8.0, 20.0 * delta)
 
 	# deltaplane
-	if Input.is_action_just_pressed("ui_accept") and !self.is_on_floor():
+	if !is_not_me && Input.is_action_just_pressed("ui_accept") and !self.is_on_floor():
 		self.deltaplane_ref = self.spawn_deltaplane()
 		is_gliding = true
 	
-	if Input.is_action_just_released("ui_accept") and is_gliding:
+	if !is_not_me && Input.is_action_just_released("ui_accept") and is_gliding:
 		self.deltaplane_ref.queue_free()
 		is_gliding = false
 		

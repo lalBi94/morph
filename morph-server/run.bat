@@ -1,2 +1,2 @@
 echo > out
-cargo run > out
+cargo run 0 > out
