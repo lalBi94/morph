@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgh847q66krqk"
+uid="uid://deb8byc0ubvqc"
 path.s3tc="res://.godot/imported/rock.png-e0d161c25d00064759da2074864c3d93.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
@@ -23,7 +23,7 @@ compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
-compress/channel_pack=0
+compress/channel_pack=1
 mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
@@ -38,4 +38,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

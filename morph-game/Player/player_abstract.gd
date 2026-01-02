@@ -4,6 +4,7 @@ class_name AbstractPlayer
 @export var gridmap: GridMap
 @export var dead_zone: Area3D
 @export var terrain: Terrain3D
+@export var game: morph_client
 
 var champion_is_loaded: bool = false
 var player: Player
@@ -22,6 +23,7 @@ func load_champion() -> Player:
 		pm.set_stats(self.stats)
 		pm.set_not_me(false)
 		pm.terrain = self.terrain
+		pm.game = game
 	
 		self.add_child(pm)
 		
@@ -32,3 +34,6 @@ func load_champion() -> Player:
 
 func _ready() -> void:
 	self.player = load_champion()
+
+func _process(_delta) -> void:
+	print(self.player.global_position)

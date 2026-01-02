@@ -4,26 +4,11 @@
 /* Bilal Boudjemline (lalBi94 on GitHub) */
 
 <payload> 
-    ::= <checkup> 
-    | <hello>
-    | <broadcast_neighbors>
+    ::= <cl_action> | <heart_beat>
 
 /* payload pattern */
-<checkup> 
-    ::= "CHECKUP" 
-    "|" <eternal_id> "|" <FLOAT> 
-    "|" <FLOAT> "|" <FLOAT> "|" <FLOAT>
-    "|" <FLOAT> "|" <FLOAT> "|" <FLOAT>
-
-<hello>
-    ::= "HELLO"
-    "|" <eternal_id>
-
-<broadcast_neighbors>
-    ::= "BRD_NEIGH"
-    "|" <eternal_id> "|" <FLOAT> 
-    "|" <FLOAT> "|" <FLOAT> "|" <FLOAT>
-    "|" <FLOAT> "|" <FLOAT> "|" <FLOAT>
+<cl_action> ::= "CL_ACTION" "|" <eternal_id> ("|" (<PHYSICAL_EVENTS> | <NON_PHYSICAL_PROCESS>))+
+<heart_beat> ::= "HEART_BEAT" "|" <eternal_id>
 
 /* litteral tokens */
 <eternal_id> 
@@ -35,3 +20,17 @@
 
 <FLOAT>
     ::= ("-")? [1-9]+ [0-9]* "." [0-9]+
+
+<PHYSICAL_EVENTS>
+    ::= "MoveForward"
+	| "MoveBackward"
+	| "MoveLeft"
+	| "MoveRight"
+	| "Jump"
+	| "Falling"
+	| "Glide"
+	| "Sprint"
+
+<NON_PHYSICAL_PROCESS>
+    ::= "Sneak"
+    | "Dance"

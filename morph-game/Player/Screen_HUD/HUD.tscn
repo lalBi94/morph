@@ -1,31 +1,44 @@
-[gd_scene load_steps=12 format=3 uid="uid://8q6v1vfb6op1"]
+[gd_scene load_steps=13 format=3 uid="uid://8q6v1vfb6op1"]
 
 [ext_resource type="Script" uid="uid://dw86k02js53bq" path="res://Player/Screen_HUD/hud_screen.gd" id="1_lv0st"]
 [ext_resource type="Script" uid="uid://ca580fqaxp5jx" path="res://Player/Screen_HUD/confirm.gd" id="2_qqbq7"]
 [ext_resource type="Script" uid="uid://erftsmgbq1pv" path="res://Player/Screen_HUD/ipt_id.gd" id="2_t48qd"]
-[ext_resource type="Texture2D" uid="uid://cc3r5bes3omij" path="res://Player/Screen_HUD/laser.png" id="4_58lfg"]
 
 [sub_resource type="Theme" id="Theme_t48qd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t48qd"]
 bg_color = Color(1, 1, 1, 0)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_58lfg"]
-texture = ExtResource("4_58lfg")
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_58lfg"]
+color = Color(0, 1, 0, 1)
+grow_begin = -10.0
+grow_end = -10.0
+thickness = 10
+vertical = true
 
 [sub_resource type="Theme" id="Theme_vx648"]
 ProgressBar/styles/background = SubResource("StyleBoxFlat_t48qd")
-ProgressBar/styles/fill = SubResource("StyleBoxTexture_58lfg")
+ProgressBar/styles/fill = SubResource("StyleBoxLine_58lfg")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7ita8"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vx648"]
-texture = ExtResource("4_58lfg")
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_t48qd"]
+color = Color(0, 0, 1, 1)
+grow_begin = -10.0
+grow_end = -10.0
+thickness = 10
+vertical = true
 
 [sub_resource type="Theme" id="Theme_yduy8"]
 ProgressBar/styles/background = SubResource("StyleBoxFlat_7ita8")
-ProgressBar/styles/fill = SubResource("StyleBoxTexture_vx648")
+ProgressBar/styles/fill = SubResource("StyleBoxLine_t48qd")
+
+[sub_resource type="LabelSettings" id="LabelSettings_t48qd"]
+font_color = Color(0.95081717, 0.90123487, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_58lfg"]
+font_color = Color(1, 0, 0, 1)
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -161,6 +174,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Gold :"
+label_settings = SubResource("LabelSettings_t48qd")
 
 [node name="Label2" type="Label" parent="Stats/HBoxContainer3/HBoxContainer"]
 layout_mode = 2
@@ -177,6 +191,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Lvl."
+label_settings = SubResource("LabelSettings_58lfg")
 
 [node name="Label2" type="Label" parent="Stats/HBoxContainer3/HBoxContainer2"]
 layout_mode = 2

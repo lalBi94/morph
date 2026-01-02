@@ -1,6 +1,14 @@
-use std::{collections::HashMap, net::UdpSocket, sync::{Arc, RwLock}, time::{Duration, Instant}};
+use core::time;
+use std::{collections::HashMap, net::UdpSocket, sync::{Arc, RwLock}, thread::yield_now, time::{Duration, Instant, SystemTime, UNIX_EPOCH}};
+use crate::{communication::payload::Payload, coords::Coords, player::{Player}};
 
-use crate::{communication::{Communication, Payload}, player::Player};
+const SPAWN_COORDS: Coords = Coords { x: -171.2462, y: 2.546574, z: 33.07719 };
+
+pub struct PeriodicListen {
+    hz: f64,
+    handler: fn(Arc<RwLock<HashMap<String, Arc<RwLock<Player>>>>>, &UdpSocket) -> (),
+    last_seen: Instant
+}
 
 pub fn client_recepetion(
     clients: Arc<RwLock<HashMap<String, Arc<RwLock<Player>>>>>, 
@@ -8,70 +16,78 @@ pub fn client_recepetion(
 )
 -> ()
 {
-    let mut buf: [u8; 1024] = [0u8; 1024];
-    let mut index: usize = 0;
-    
+    let interception_frequency_hz: f64 = 60.0;
+    let interception_interval: Duration = Duration::from_secs_f64(1.0 / interception_frequency_hz);
+    let mut last_broadcast: Instant = Instant::now();
+
     loop 
     {
-        let perf: Instant = Instant::now();
-        println!("-------------------[Client Reception n.{}]-------------------", index);
+        if last_broadcast.elapsed() >= interception_interval 
+        {
+            last_broadcast = Instant::now();
+            client_recepetion_process(
+                Arc::clone(&clients), 
+                &socket
+            );
+        }
+        
+        std::thread::sleep(Duration::from_millis(1));
+    }
+}
 
-        match socket.recv_from(&mut buf) 
+fn client_recepetion_process(
+    clients: Arc<RwLock<HashMap<String, Arc<RwLock<Player>>>>>, 
+    socket: &UdpSocket
+)
+-> ()
+{
+    let mut buf: [u8; 4096] = [0u8; 4096];
+    
+    let perf: Instant = Instant::now();
+    println!("-------------------[Snapshot n.{}]-------------------", 0);
+
+    let frequency_hz: f64 = 60.0;
+    let interval: Duration = Duration::from_secs_f64(1.0 / frequency_hz);
+    let mut last_call: Instant = Instant::now();
+
+    loop
+    {
+        if last_call.elapsed() >= interval {
+            println!("> End reception");
+            last_call = Instant::now();
+            break;
+        } 
+
+        match socket.recv_from(&mut buf)
         {
             Ok((amt, src)) => 
             {
                 let msg = String::from_utf8_lossy(&buf[..amt]);
+                println!("{msg}");
                 let mut payload_iter: std::str::Split<'_, char> = msg.split('|');
                 let mut payload: Option<Payload> = None;
 
                 if let Some(v) = payload_iter.next() {
                     match v {
-                        "HERE" => {
-                        }
-
-                        "CHECKUP" => {
-                            payload = Communication::interpret_checkup(payload_iter)
-                        }
-
                         _ => {}
                     }
                 }
                 
-                if let Some(v) = payload {
+                if let Some(v) = payload 
+                {
                     match &v {
-                        Payload::CheckUpPayload(player_check_payload) => {
-                            let mut clients_write = clients.write().unwrap();
-
-                            if !clients_write.contains_key(&player_check_payload.get_eid())
-                            {
-                                let player: Player = Player::create(src.to_string(), player_check_payload.get_eid());
-                                clients_write.insert(player_check_payload.get_eid(), Arc::new(RwLock::new(player)));
-                            } else 
-                            {
-                                if let Some(p) = clients_write.get(&player_check_payload.get_eid()) {
-                                    let mut p_write = p.write().unwrap();
-                                    p_write.seen();
-                                    p_write.set_coords(player_check_payload.get_coords());
-                                    p_write.set_hp(player_check_payload.get_hp());
-                                    p_write.set_rotation(player_check_payload.get_rotation());
-                                }
-                                println!("Reçu de {}: {}", &player_check_payload.get_eid(), msg);
-                            }
-                        },
+                        _ => {
+                            println!("> Unknown payload type incoming from {:?}", src);
+                        }
                     }
                 }
             }
-            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
-            Err(_e) => {}
+            Err(ref e) => if e.kind() == std::io::ErrorKind::WouldBlock {}
         }
-
-        println!(
-            "[{}us]----------[END Client Reception n.{}]-------------------", 
-            perf.elapsed().as_micros(), index
-        );
-        
-        std::thread::sleep(Duration::from_millis(1));
-
-        index += 1;
     }
+
+    println!(
+        "[{}us]----------[END Snapshot Reception n.{}]-------------------", 
+        perf.elapsed().as_micros(), 0
+    );
 }

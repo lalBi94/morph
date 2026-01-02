@@ -12,15 +12,16 @@ ab_player = NodePath("Player")
 map = NodePath("MAP/GridMap")
 pl_stats = ExtResource("3_q2dk8")
 
-[node name="Player" parent="." node_paths=PackedStringArray("gridmap", "dead_zone", "terrain") instance=ExtResource("2_sxmfx")]
+[node name="Player" parent="." node_paths=PackedStringArray("gridmap", "dead_zone", "terrain", "game") instance=ExtResource("2_sxmfx")]
 transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, -171.24623, 25.169651, 33.077187)
 gridmap = NodePath("../MAP/GridMap")
 dead_zone = NodePath("../MAP/Deadzone/Area3D")
 terrain = NodePath("../MAP/Terrain3D")
+game = NodePath("..")
 
 [node name="MAP" parent="." instance=ExtResource("2_fi153")]
 
-[node name="water" parent="MAP" index="2"]
+[node name="water" parent="MAP" index="1"]
 transform = Transform3D(18.355, 0, 0, 0, 18.355, 0, 0, 0, 18.355, 85.54049, -99.993576, 90.33488)
 
 [node name="Control" parent="." instance=ExtResource("6_ssj5p")]
@@ -46,6 +47,11 @@ grow_vertical = 2
 [node name="Stats" parent="Control" index="2"]
 offset_top = -196.0
 offset_right = -183.0
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -177.12051, 250.97992, 50.874557)
+omni_range = 717.62
+omni_attenuation = -0.129
 
 [editable path="Player"]
 [editable path="MAP"]

@@ -5,11 +5,28 @@ class_name Player
 @export var dead_zone: Area3D
 @export var terrain: Terrain3D
 @export var is_not_me: bool
+@export var game: morph_client
 
 @onready var animation_tree: AnimationTree = $AnimationTree
 @onready var body_mesh: MeshInstance3D = $Armature/Skeleton3D/Mesh
 @onready var camera_arm: SpringArm3D = $Camera
 @onready var camera_of_arm: Camera3D = $Camera/Camera3D
+
+enum PossibleAction {
+	# Physical 
+	MoveForward,
+	MoveBackward,
+	MoveLeft,
+	MoveRight,
+	Jump,
+	Falling,
+	Glide,
+	Sprint,
+	
+	# Non physical
+	Sneak,
+	Dance
+}
 
 enum under_feet {
 	nothing = -1,
@@ -34,6 +51,34 @@ var is_dead: bool = false
 var stats: PlayerStats
 
 signal fall()
+signal in_action(act: Player.PossibleAction)
+
+static func translate_cl_action_to_string(act: PossibleAction) -> String:
+	match act:
+	# Physical 
+		PossibleAction.MoveForward:
+			return "MoveForward"
+		PossibleAction.MoveBackward:
+			return "MoveBackward"
+		PossibleAction.MoveLeft:
+			return "MoveLeft"
+		PossibleAction.MoveRight:
+			return "MoveRight"
+		PossibleAction.Jump:
+			return "Jump"
+		PossibleAction.Falling:
+			return "Falling"
+		PossibleAction.Glide:
+			return "Glide"
+		PossibleAction.Sprint:
+			return "Sprint"
+		# Non physical
+		PossibleAction.Sneak:
+			return "Sneak"
+		PossibleAction.Dance:
+			return "Dance"
+		_:
+			return "Unknown"
 
 func set_not_me(response: bool) -> void:
 	self.is_not_me = response
@@ -42,7 +87,7 @@ func set_stats(pstats: PlayerStats) -> void:
 	self.stats = pstats
 
 func _input(event):
-	if event is InputEventMouseMotion:
+	if (event is InputEventMouseMotion) && !is_not_me:
 		var mouse_pos: Vector2 = event.position
 
 		var from: Vector3 = camera_of_arm.project_ray_origin(mouse_pos)
@@ -147,6 +192,7 @@ func _physics_process(delta: float) -> void:
 	# Sprint
 	if Input.is_action_just_pressed("morph_sprint"):
 		is_sprinting = true
+		emit_signal("in_action", PossibleAction.Sprint)
 	elif Input.is_action_just_released("morph_sprint"):
 		is_sprinting = false
 		
@@ -159,8 +205,10 @@ func _physics_process(delta: float) -> void:
 	# Add the gravity.
 	if not is_on_floor() and not is_gliding:
 		velocity.y -= 35 * delta
+		emit_signal("in_action", PossibleAction.Falling)
 	elif is_gliding:
 		velocity.y -= 5 * delta
+		emit_signal("in_action", PossibleAction.Glide)
 
 	# Mouvements
 	if !is_not_me:
@@ -176,6 +224,17 @@ func _physics_process(delta: float) -> void:
 		if direction.length() > 0.0:
 			velocity.x = direction.x * speed
 			velocity.z = direction.z * speed
+			
+			if direction.z < 0:
+				emit_signal("in_action", PossibleAction.MoveForward)
+			elif direction.z > 0:
+				emit_signal("in_action", PossibleAction.MoveBackward)
+
+			if direction.x > 0:
+				emit_signal("in_action", PossibleAction.MoveRight)
+			elif direction.x < 0:
+				emit_signal("in_action", PossibleAction.MoveLeft)
+				
 		else:
 			var decel := stats.move_speed
 			velocity.x = move_toward(velocity.x, 0.0, decel)
@@ -185,6 +244,7 @@ func _physics_process(delta: float) -> void:
 	if !is_not_me && Input.is_action_just_pressed("morph_zoom"):
 		camera_arm.position *= ZOOM_ADD
 		is_zooming = true
+		emit_signal("in_action", PossibleAction.Sneak)
 	if !is_not_me && Input.is_action_just_released("morph_zoom"):
 		camera_arm.position /= ZOOM_ADD
 		is_zooming = false
@@ -192,6 +252,7 @@ func _physics_process(delta: float) -> void:
 	# Handle jump.
 	if !is_not_me && Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = stats.jump_velocity + 9
+		emit_signal("in_action", PossibleAction.Jump)
 
 	if is_gliding and body_mesh:
 		deltaplane_ref.rotation.y = body_mesh.rotation.y
@@ -203,6 +264,7 @@ func _physics_process(delta: float) -> void:
 	if !is_not_me && Input.is_action_just_pressed("ui_accept") and !self.is_on_floor():
 		self.deltaplane_ref = self.spawn_deltaplane()
 		is_gliding = true
+		emit_signal("in_action", PossibleAction.Glide)
 	
 	if !is_not_me && Input.is_action_just_released("ui_accept") and is_gliding:
 		self.deltaplane_ref.queue_free()
