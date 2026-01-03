@@ -1,11 +1,14 @@
 use std::time::{Duration, Instant};
 
+use crate::coords::Coords;
+
 #[derive(Debug)]
 pub struct Player 
 {
     id: String,
     addr: String,
     is_deconnected: bool,
+    last_position: Coords,
     last_seen: Instant
 }
 
@@ -16,8 +19,21 @@ impl Player {
             id,
             addr,
             is_deconnected: false,
-            last_seen: Instant::now()
+            last_seen: Instant::now(),
+            last_position: Coords::create(0.0, 0.0, 0.0)
         }
+    }
+
+    pub fn set_last_position(&mut self, coords: Coords)
+    -> ()
+    {
+        self.last_position = coords;
+    }
+
+    pub fn get_last_position(&self)
+    -> Coords
+    {
+        Coords::owned_coords(&self.last_position)
     }
 
     pub fn seen(&mut self) -> () 

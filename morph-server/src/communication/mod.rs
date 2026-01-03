@@ -1,6 +1,7 @@
 pub mod broadcast;
 pub mod payload;
 pub mod client_reception;
+pub mod events;
 
 use std::{
     collections::HashMap, net::UdpSocket, sync::{Arc, RwLock}, thread::{self, JoinHandle}

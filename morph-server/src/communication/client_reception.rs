@@ -1,18 +1,14 @@
 use core::time;
 use std::{collections::HashMap, net::UdpSocket, sync::{Arc, RwLock}, thread::yield_now, time::{Duration, Instant, SystemTime, UNIX_EPOCH}};
-use crate::{communication::payload::Payload, coords::Coords, player::{Player}};
+use crossterm::event::Event;
+
+use crate::{communication::{events::{ClientEvent, PhysicalEvent}}, coords::Coords, player::Player};
 
 const SPAWN_COORDS: Coords = Coords { x: -171.2462, y: 2.546574, z: 33.07719 };
 
-pub struct PeriodicListen {
-    hz: f64,
-    handler: fn(Arc<RwLock<HashMap<String, Arc<RwLock<Player>>>>>, &UdpSocket) -> (),
-    last_seen: Instant
-}
-
 pub fn client_recepetion(
     clients: Arc<RwLock<HashMap<String, Arc<RwLock<Player>>>>>, 
-    socket: UdpSocket
+    socket: UdpSocket,
 )
 -> ()
 {
@@ -65,21 +61,17 @@ fn client_recepetion_process(
                 let msg = String::from_utf8_lossy(&buf[..amt]);
                 println!("{msg}");
                 let mut payload_iter: std::str::Split<'_, char> = msg.split('|');
-                let mut payload: Option<Payload> = None;
+                let mut payload: Option<ClientEvent> = None;
 
                 if let Some(v) = payload_iter.next() {
-                    match v {
-                        _ => {}
-                    }
+                    let parsed: ClientEvent = ClientEvent::parse_string(v.to_string());
+                    payload = Some(parsed);
                 }
                 
                 if let Some(v) = payload 
                 {
-                    match &v {
-                        _ => {
-                            println!("> Unknown payload type incoming from {:?}", src);
-                        }
-                    }
+                    let re_to_string: String = payload_iter.collect::<Vec<&str>>().join("|");
+                    v.process(re_to_string, todo!());
                 }
             }
             Err(ref e) => if e.kind() == std::io::ErrorKind::WouldBlock {}
